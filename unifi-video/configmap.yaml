@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unifi-video-env
+  namespace: domain-tlx
+data:
+  PGID: '1000'
+  PUID: '1000'
+  TZ: "America/Chicago"
+  DEBUG: '1'
+

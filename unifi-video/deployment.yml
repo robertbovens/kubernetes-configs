@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unifi-video
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unifi-video
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: unifi-video
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/san: "true"
+      hostname: unifi-video
+      restartPolicy: Always
+      containers:
+      - name: unifi-video
+        image: pducharme/unifi-video-controller
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: unifi-video-env
+        ports:
+          - name: http
+            containerPort: 7080
+          - name: no-idea
+            containerPort: 1935
+            hostPort: 1935
+          - name: inbound-camera
+            containerPort: 6666
+            hostPort: 6666
+          - name: camera-mgmt
+            containerPort: 7442
+            hostPort: 7442
+          - name: no-idea2
+            containerPort: 7444
+            hostPort: 7444
+          - name: video-ovr-http
+            containerPort: 7445
+            hostPort: 7445
+          - name: video-ovr-https
+            containerPort: 7446
+            hostPort: 7446
+          - name: controller-rtsp
+            containerPort: 7447
+            hostPort: 7447
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 1880
+        volumeMounts:
+             - mountPath: /var/lib/unifi-video
+               name: config
+             - mountPath: /var/lib/unifi-video/videos
+               name: videos
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+              - DAC_READ_SEARCH
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/unifi-video
+        - name: videos
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media/camera_recordings

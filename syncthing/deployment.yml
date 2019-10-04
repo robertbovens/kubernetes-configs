@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syncthing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: syncthing
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: syncthing
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/san: "true"
+      hostname: syncthing
+      restartPolicy: Always
+      containers:
+      - name: syncthing
+        image: syncthing/syncthing:1.3.0
+        envFrom:
+          - configMapRef:
+              name: syncthing-env
+        ports:
+          - name: http
+            containerPort: 8384
+          - name: bittorrent-port
+            containerPort: 22000
+            hostPort: 22000
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 1880
+        volumeMounts:
+             - mountPath: /var/syncthing
+               name: config
+             - mountPath: /mnt/media
+               name: media
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/syncthing
+        - name: media
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media

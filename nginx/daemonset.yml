@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      hostname: nginx
+      restartPolicy: Always
+      containers:
+      - name: nginx
+        image: linuxserver/nginx:dbf54f67-ls30
+        ports:
+          - containerPort: 80
+            hostPort: 80
+            name: http
+          - containerPort: 443
+            hostPort: 443
+            name: https
+        envFrom:
+          - configMapRef:
+              name: nginx-env
+        #livenessProbe:
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 10
+        #  timeoutSeconds: 1
+        #  failureThreshold: 3
+        #  httpGet:
+        #    path: /
+        #    port: http
+        volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /var/www/automarkwatched/static
+            name: automarkwatched-static
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/nginx
+        - name: automarkwatched-static
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/automarkwatched/static_files

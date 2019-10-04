@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: domain-tlx
+data:
+  GF_DEFAULT_INSTANCE_NAME: "domain.tld Grafana"
+  GF_PATHS_DATA: "/config/data"
+  GF_PATHS_LOGS: "/config/logs"
+  GF_PATHS_PLUGINS: "/config/plugins"
+  GF_PATHS_CONFIG: "/config/grafana.ini"
+  GF_SERVER_ROOT_URL: "https://grafana.domain.tld"
+  GF_SERVER_ENABLE_GZIP: "true"
+  GF_SMTP_ENABLED: "true"
+  GF_SMTP_HOST: "smtp.gmail.com:587"
+  GF_SMTP_USER: "user@domain.tld"
+  GF_SMTP_PASSWORD: "asdf"
+  GF_SMTP_FROM_ADDRESS: "no-reply@domain.tld"
+  GF_SMTP_FROM_NAME: "domain.tld Grafana"
+

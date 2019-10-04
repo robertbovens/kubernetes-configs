@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoip
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echoip
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: echoip
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: echoip
+      restartPolicy: Always
+      containers:
+      - name: echoip
+        image: mpolden/echoip@sha256:512b3626ca3d7264ae5dff04893a34fc873f8adb675ffd6f0cbaecc6557579a6
+        ports:
+          - containerPort: 8080
+        args:
+          - --city-db=/opt/echoip/GeoLite2-City.mmdb
+          - --reverse-lookup
+          - --port-lookup
+          - --trusted-header=X-Real-IP
+        livenessProbe:
+          failureThreshold: 10000
+          httpGet:
+            path: /
+            port: 8080
+        volumeMounts:
+          - mountPath: /opt/echoip
+            name: echoip-data-volume
+      volumes:
+        - name: echoip-data-volume
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/echoip

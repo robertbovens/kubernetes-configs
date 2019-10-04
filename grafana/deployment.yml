@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: grafana
+      restartPolicy: Always
+      containers:
+      - name: grafana
+        image: grafana/grafana:6.3.5
+        ports:
+          - containerPort: 3000
+        envFrom:
+          - configMapRef:
+              name: grafana-config
+        livenessProbe:
+          failureThreshold: 10000
+          httpGet:
+            path: /login
+            port: 3000
+        volumeMounts:
+          - mountPath: /config
+            name: grafana-data-volume
+      volumes:
+        - name: grafana-data-volume
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/grafana

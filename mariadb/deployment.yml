@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: mariadb
+      restartPolicy: Always
+      containers:
+      - name: mariadb
+        image: mariadb
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 3306
+        envFrom:
+          - configMapRef:
+              name: mariadb-config
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /login
+        #    port: 30
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: mariadb-data-volume
+          - mountPath: /etc/mysql
+            name: mariadb-config-volume
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+      volumes:
+        - name: mariadb-data-volume
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/mariadb/mysql
+        - name: mariadb-config-volume
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/mariadb/conf.d
+

@@ -1,0 +1,23 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: authtest
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: true
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      internal;
+      proxy_set_header Content-Length "";
+spec:
+  tls:
+    - hosts:
+      - userflix.io
+      secretName: userflix.io.tls
+  rules:
+    - host: userflix.io
+      http:
+        paths:
+          - path: /auth-(.*)
+            backend:
+              serviceName: organizr
+              servicePort: 80

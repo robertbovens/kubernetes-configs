@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thelounge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thelounge
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: thelounge
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: thelounge
+      restartPolicy: Always
+      containers:
+      - name: thelounge
+        image: thelounge/thelounge
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 9000
+            hostPort: 9402
+        livenessProbe:
+          failureThreshold: 10000
+          httpGet:
+            path: /
+            port: 9000
+        volumeMounts:
+          - mountPath: /var/opt/thelounge
+            name: thelounge-data-volume
+      volumes:
+        - name: thelounge-data-volume
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/thelounge

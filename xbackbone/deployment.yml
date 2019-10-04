@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xbackbone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xbackbone
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: xbackbone
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: xbackbone
+      restartPolicy: Always
+      containers:
+      - name: xbackbone
+        image: pe46dro/xbackbone-docker
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 80
+        envFrom:
+          - configMapRef:
+              name: xbackbone-env
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /
+            port: 80
+        volumeMounts:
+#          - mountPath: /app/config.php
+#            subPath: config.php
+#            name: config
+          - mountPath: /app/storage
+            name: storage
+          - mountPath: /app/resources/database
+            name: database
+          - mountPath: /app/logs
+            name: logs
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+      volumes:
+        - name: storage
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/xbackbone/storage
+        - name: database
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/xbackbone/database
+        - name: logs
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/xbackbone/logs
+#        - name: config
+#          configMap:
+#            name: xbackbone-config
+#            items:
+#              - key: config.php
+#                path: config.php
+

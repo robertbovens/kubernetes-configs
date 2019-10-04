@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tautulli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tautulli
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: tautulli
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: tautulli
+      restartPolicy: Always
+      containers:
+      - name: tautulli
+        image: linuxserver/tautulli
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8181
+        envFrom:
+          - configMapRef:
+              name: tautulli-env
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 3000
+        volumeMounts:
+          - mountPath: /config
+            name: tautulli-config-volume
+      volumes:
+        - name: tautulli-config-volume
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/tautulli

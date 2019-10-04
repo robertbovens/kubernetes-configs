@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unifi-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unifi-exporter
+  template:
+    metadata:
+      labels:
+        app: unifi-exporter
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '9130'
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: unifi-exporter
+      restartPolicy: Always
+      containers:
+        - name: unifi-exporter
+          image: jessestuart/unifi_exporter:v0.4.0
+          command:
+            - /bin/unifi_exporter
+          args:
+            - -config.file=/unifi_exporter/config.yml
+          ports:
+            - name: prometheus
+              containerPort: 9130
+          volumeMounts:
+            - name: config
+              mountPath: /unifi_exporter
+              readOnly: true
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /metrics
+              port: 9130
+      volumes:
+        - name: config
+          configMap:
+            name: unifi-exporter-config
+            items:
+              - key: config.yml
+                path: config.yml
+

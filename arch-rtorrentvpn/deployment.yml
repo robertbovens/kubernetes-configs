@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtorrent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rtorrent
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: rtorrent
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/san: "true"
+      hostname: rtorrent
+      restartPolicy: Always
+      containers:
+      - name: rtorrent
+        image: binhex/arch-rtorrentvpn:1.1.r42.g37c9d4b-1-05
+        ports:
+          - containerPort: 9080
+            hostPort: 9080
+            name: rutorrent-web
+          - containerPort: 50105
+            hostPort: 50105
+            name: rtorrent-seed
+        envFrom:
+          - configMapRef:
+              name: rtorrent-config
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 9080
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+        volumeMounts:
+          - mountPath: /config
+            name: rtorrent-data-volume
+          - mountPath: /mnt
+            name: rtorrent-media-volume
+      volumes:
+        - name: rtorrent-data-volume
+          hostPath:
+            path: /mnt/nfs/rtorrent
+            type: Directory
+        - name: rtorrent-media-volume
+          hostPath:
+            path: /mnt/media
+            type: Directory

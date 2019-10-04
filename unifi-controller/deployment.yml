@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unifi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unifi
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: unifi
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: "node2.k8s.domain.tld"
+      hostname: unifi
+      restartPolicy: Always
+      containers:
+      - name: unifi
+        image: linuxserver/unifi-controller
+        imagePullPolicy: Always
+        ports:
+          - name: https
+            containerPort: 8443
+          - name: http
+            containerPort: 8081
+          - name: stun
+            containerPort: 3478
+            hostPort: 3478
+            protocol: UDP
+          - name: device-comm
+            containerPort: 8080
+            hostPort: 8080
+          - name: speed-test
+            containerPort: 6789
+            hostPort: 6789
+          - name: local-db
+            containerPort: 27117
+            hostPort: 27117
+          - name: device-disc
+            containerPort: 10001
+            hostPort: 10001
+            protocol: UDP
+          - name: l2-network-disc
+            containerPort: 1900
+            hostPort: 1900
+            protocol: UDP
+        envFrom:
+          - configMapRef:
+              name: unifi-env
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /login
+        #    port: 3000
+        volumeMounts:
+          - mountPath: /config
+            name: unifi-config
+      volumes:
+        - name: unifi-config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/unifi

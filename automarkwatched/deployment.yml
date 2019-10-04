@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: automarkwatched
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: automarkwatched
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: automarkwatched
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: automarkwatched
+      restartPolicy: Always
+      containers:
+      - name: automarkwatched
+        image: itscontained/automarkwatched:0.1.0
+        imagePullPolicy: Always
+        ports:
+          - name: ui
+            containerPort: 8000
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: ui
+        volumeMounts:
+          - mountPath: /app/data
+            name: data
+          - mountPath: /app/static_files
+            name: static-files
+      volumes:
+        - name: data
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/automarkwatched/data
+        - name: static-files
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/automarkwatched/static_files

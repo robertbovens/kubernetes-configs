@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mariadb-config
+  namespace: domain-tlx
+data:
+  TZ: "America/Chicago"
+  MYSQL_ROOT_PASSWORD: "asdf"
+  MYSQL_DATABASE: "database1"

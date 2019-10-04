@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: plex-env
+  namespace: domain-tlx
+data:
+  TZ: "America/Chicago"
+  PLEX_UID: '111'
+  PLEX_GID: '113'
+  VERSION: "latest"
+  NVIDIA_VISIBLE_DEVICES: "all"
+  NVIDIA_DRIVER_CAPABILITIES: "all"
+  ALLOWED_NETWORKS: "10.0.10.0/24,172.16.0.0/16"
+

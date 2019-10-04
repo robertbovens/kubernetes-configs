@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookstack
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: bookstack
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: bookstack
+      restartPolicy: Always
+      containers:
+      - name: bookstack
+        image: linuxserver/bookstack:v0.27.4-ls59
+        ports:
+          - containerPort: 80
+            name: http
+        envFrom:
+          - configMapRef:
+              name: bookstack-env
+        livenessProbe:
+          failureThreshold: 10000
+          httpGet:
+            path: /
+            port: http
+        volumeMounts:
+          - mountPath: /config
+            name: data
+      volumes:
+        - name: data
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/bookstack

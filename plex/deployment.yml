@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/gpu: "true"
+      hostname: plex
+      restartPolicy: Always
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: plex
+        image: plexinc/pms-docker:plexpass
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: plex-env
+        livenessProbe:
+          exec:
+            command:
+              - cat
+              - /tv/healthcheck
+          initialDelaySeconds: 60
+          periodSeconds: 60
+        volumeMounts:
+             - mountPath: /config
+               name: config
+             - mountPath: /tv
+               name: tv
+               readOnly: true
+             - mountPath: /tv4k
+               name: tv4k
+               readOnly: true
+             - mountPath: /movies
+               name: movies
+               readOnly: true
+             - mountPath: /movies4k
+               name: movies4k
+               readOnly: true
+             - mountPath: /transcode
+               name: transcode
+      volumes:
+        - name: config
+          hostPath:
+            path: /opt/plexmediaserver
+            type: Directory
+        - name: transcode
+          hostPath:
+            path: /transcode
+            type: Directory
+        - name: tv
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media/tv
+        - name: tv4k
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media/tv4k
+        - name: movies
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media/movies
+        - name: movies4k
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media/movies4k
+

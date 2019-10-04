@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unifi-exporter-config
+  namespace: domain-tlx
+data:
+  config.yml: |
+    listen:
+      address: :9130
+      metricspath: /metrics
+    unifi:
+      address: https://unifi.domain.tld
+      username: user@domain.tld
+      password: asdf
+      insecure: false
+      timeout: 5s

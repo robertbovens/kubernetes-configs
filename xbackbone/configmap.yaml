@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xbackbone-env
+  namespace: domain-tlx
+data:
+  URL: "https://images.domain.tld"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xbackbone-config
+  namespace: domain-tlx
+data:
+  config.php: |
+    <?php
+    return [
+            'app_name' => 'domain.tld hosting',
+            'base_url' => 'https://images.domain.tld',
+            'db' => [
+                    'connection' => 'sqlite',
+                    'dsn' => 'resources/database/xbackbone.db',
+                    'username' => null,
+                    'password' => null,
+            ],
+            'storage' => [
+                    'driver' => 'local',
+                    'path' => './storage',
+            ],
+    ];

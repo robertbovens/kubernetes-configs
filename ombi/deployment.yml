@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ombi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ombi
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ombi
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: ombi
+      restartPolicy: Always
+      containers:
+      - name: ombi
+        image: lsiodev/ombi-preview
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 3579
+        envFrom:
+          - configMapRef:
+              name: ombi-env
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 3000
+        volumeMounts:
+          - mountPath: /config
+            name: ombi-config-volume
+      volumes:
+        - name: ombi-config-volume
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/ombi

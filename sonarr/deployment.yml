@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: sonarr
+      restartPolicy: Always
+      containers:
+      - name: sonarr
+        image: linuxserver/sonarr:preview
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8989
+        envFrom:
+          - configMapRef:
+              name: sonarr-env
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 3000
+        volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /mnt/media
+            name: mnt
+          - mountPath: /mnt/media/torrents/incomplete
+            name: emptydir
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/sonarr
+        - name: mnt
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media
+        - name: emptydir
+          emptyDir: {}

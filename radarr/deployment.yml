@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radarr
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: radarr
+      restartPolicy: Always
+      containers:
+      - name: radarr
+        image: linuxserver/radarr:nightly
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 7878
+        envFrom:
+          - configMapRef:
+              name: radarr-env
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 3000
+        volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /mnt/media
+            name: mnt
+          - mountPath: /mnt/media/torrents/incomplete
+            name: emptydir
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/radarr
+        - name: mnt
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media
+        - name: emptydir
+          emptyDir: {}

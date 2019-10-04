@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iperf3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iperf3
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: iperf3
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/san: "true"
+      hostname: iperf3
+      restartPolicy: Always
+      containers:
+      - name: iperf3
+        image: mlabbe/iperf3:3.6-r0
+        args:
+          - --server
+          - --format
+          - m
+          - --port
+          - "45678"
+          - --verbose
+          - --interval
+          - "2"
+        ports:
+          - containerPort: 45678
+            hostPort: 45678
+            name: iperf-server        

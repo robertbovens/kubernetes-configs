@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitwarden
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bitwarden
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: bitwarden
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: bitwarden
+      restartPolicy: Always
+      containers:
+      - name: bitwarden
+        image: bitwardenrs/server:1.10.0-alpine
+        ports:
+          - containerPort: 80
+            name: http
+          - containerPort: 3012
+            name: websocket
+        envFrom:
+          - configMapRef:
+              name: bitwarden-env
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: http
+        volumeMounts:
+          - mountPath: /data
+            name: data
+      volumes:
+        - name: data
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/bitwarden

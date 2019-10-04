@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: nextcloud
+      restartPolicy: Always
+      containers:
+      - name: nextcloud
+        image: linuxserver/nextcloud
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 443
+        envFrom:
+          - configMapRef:
+              name: nextcloud-env
+        #livenessProbe:
+        #  failureThreshold: 10000
+        #  httpGet:
+        #    path: /
+        #    port: 3000
+        volumeMounts:
+          - mountPath: /config
+            name: config
+          - mountPath: /data
+            name: data
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/nextcloud
+        - name: data
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/media/nextcloud_data
+

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: varken
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: varken
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: varken
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/general: "true"
+      hostname: varken
+      restartPolicy: Always
+      containers:
+      - name: varken
+        image: boerderij/varken:develop
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: varken-env
+        volumeMounts:
+          - mountPath: /config
+            name: config
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.1.123
+            path: /mnt/nfs/varken

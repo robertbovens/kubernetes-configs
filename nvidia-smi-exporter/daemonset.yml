@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-smi-exporter
+spec:
+  selector:
+    matchLabels:
+      app: nvidia-smi-exporter
+  template:
+    metadata:
+      labels:
+        app: nvidia-smi-exporter
+    spec:
+      nodeSelector:
+        node-role.k8s.domain.tld/gpu: "true"
+      hostname: nvidia-smi-exporter
+      restartPolicy: Always
+      hostPID: true
+      containers:
+      - name: nvidia-smi-exporter
+        image: dirtycajunrice/nvidia-smi-exporter:0.1.0
+        ports:
+        - name: prometheus
+          containerPort: 9454
+          hostPort: 9454
+        envFrom:
+          - configMapRef:
+              name: nvidia-smi-exporter-env
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ping
+            port: 9454
