@@ -2,9 +2,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: varken-env
-  namespace: domain-tlx
+  namespace: default
 data:
-  TZ: "America/Chicago"
+  TZ: "America/Toronto"
   VRKN_GLOBAL_SONARR_SERVER_IDS: "1,2"
   VRKN_GLOBAL_RADARR_SERVER_IDS: "1,2"
   VRKN_GLOBAL_LIDARR_SERVER_IDS: "false"
